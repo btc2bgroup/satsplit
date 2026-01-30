@@ -1,0 +1,20 @@
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import ShareLink from "../components/ShareLink";
+
+describe("ShareLink", () => {
+  it("displays the share URL", () => {
+    render(<ShareLink shortCode="abc123" />);
+    const input = screen.getByDisplayValue(/\/bill\/abc123/);
+    expect(input).toBeInTheDocument();
+  });
+
+  it("copies URL to clipboard on click", () => {
+    const spy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    render(<ShareLink shortCode="xyz789" />);
+    fireEvent.click(screen.getByText("Copy Link"));
+
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("/bill/xyz789"));
+    spy.mockRestore();
+  });
+});

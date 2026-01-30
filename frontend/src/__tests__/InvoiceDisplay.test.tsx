@@ -1,0 +1,25 @@
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import InvoiceDisplay from "../components/InvoiceDisplay";
+
+describe("InvoiceDisplay", () => {
+  it("shows copy button and open wallet link", () => {
+    render(<InvoiceDisplay bolt11="lnbc1234" />);
+    expect(screen.getByText("Copy Invoice")).toBeInTheDocument();
+    expect(screen.getByText("Open Wallet")).toHaveAttribute("href", "lightning:lnbc1234");
+  });
+
+  it("copies invoice to clipboard", async () => {
+    const spy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    render(<InvoiceDisplay bolt11="lnbc5678" />);
+    fireEvent.click(screen.getByText("Copy Invoice"));
+
+    expect(spy).toHaveBeenCalledWith("lnbc5678");
+    spy.mockRestore();
+  });
+
+  it("displays the bolt11 string", () => {
+    render(<InvoiceDisplay bolt11="lnbc_test_invoice" />);
+    expect(screen.getByText("lnbc_test_invoice")).toBeInTheDocument();
+  });
+});
