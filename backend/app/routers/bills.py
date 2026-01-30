@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_session
+from app.limiter import limiter
 from app.schemas import BillCreate, BillOut, BillStatus, ExchangeRateOut
 from app.services import bill_service, exchange
 from app.services.lnurl import LnurlError
@@ -10,7 +12,8 @@ router = APIRouter(prefix="/api")
 
 
 @router.post("/bills", response_model=BillOut, status_code=201)
-async def create_bill(body: BillCreate, session: AsyncSession = Depends(get_session)):
+@limiter.limit(settings.rate_limit)
+async def create_bill(request: Request, body: BillCreate, session: AsyncSession = Depends(get_session)):
     try:
         bill = await bill_service.create_bill(
             session,
@@ -26,7 +29,8 @@ async def create_bill(body: BillCreate, session: AsyncSession = Depends(get_sess
 
 
 @router.get("/bills/{short_code}", response_model=BillOut)
-async def get_bill(short_code: str, session: AsyncSession = Depends(get_session)):
+@limiter.limit(settings.rate_limit)
+async def get_bill(request: Request, short_code: str, session: AsyncSession = Depends(get_session)):
     bill = await bill_service.get_bill_by_code(session, short_code)
     if not bill:
         raise HTTPException(404, detail="Bill not found")
@@ -34,7 +38,8 @@ async def get_bill(short_code: str, session: AsyncSession = Depends(get_session)
 
 
 @router.get("/bills/{short_code}/status", response_model=BillStatus)
-async def get_bill_status(short_code: str, session: AsyncSession = Depends(get_session)):
+@limiter.limit(settings.rate_limit)
+async def get_bill_status(request: Request, short_code: str, session: AsyncSession = Depends(get_session)):
     bill = await bill_service.get_bill_by_code(session, short_code)
     if not bill:
         raise HTTPException(404, detail="Bill not found")
@@ -47,7 +52,8 @@ async def get_bill_status(short_code: str, session: AsyncSession = Depends(get_s
 
 
 @router.get("/exchange-rate", response_model=ExchangeRateOut)
-async def get_exchange_rate(currency: str = Query(default="USD", max_length=4)):
+@limiter.limit(settings.rate_limit)
+async def get_exchange_rate(request: Request, currency: str = Query(default="USD", max_length=4)):
     try:
         price = await exchange.get_btc_price(currency.upper())
     except Exception as e:

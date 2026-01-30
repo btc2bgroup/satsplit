@@ -1,4 +1,24 @@
 import pytest
+from limits import parse_many
+from slowapi.util import get_remote_address
+from slowapi.wrappers import Limit
+
+from app.limiter import limiter
+
+
+def test_rate_limit(client):
+    key = "app.routers.bills.get_bill"
+    original = limiter._route_limits[key]
+    tight = Limit(parse_many("1/minute")[0], get_remote_address, None, False, None, None, None, 1, True)
+    limiter._route_limits[key] = [tight]
+    limiter.enabled = True
+    try:
+        resp1 = client.get("/api/bills/nonexist")
+        resp2 = client.get("/api/bills/nonexist")
+        assert resp2.status_code == 429
+    finally:
+        limiter._route_limits[key] = original
+        limiter.enabled = False
 
 
 def test_create_bill(client, mock_lnurl, mock_exchange):

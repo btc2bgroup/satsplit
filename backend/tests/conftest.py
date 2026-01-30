@@ -9,6 +9,7 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.database import get_session
+from app.limiter import limiter
 from app.main import app
 from app.models import Base
 
@@ -39,9 +40,11 @@ def client(db_session):
         yield db_session
 
     app.dependency_overrides[get_session] = override_session
+    limiter.enabled = False
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+    limiter.enabled = True
 
 
 MOCK_LNURL_DATA = {

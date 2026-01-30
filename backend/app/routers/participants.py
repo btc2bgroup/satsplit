@@ -1,10 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_session
+from app.limiter import limiter
 from app.models import Participant
 from app.schemas import JoinRequest, JoinResponse, ParticipantOut, UpdateStatusRequest
 from app.services import bill_service
@@ -14,7 +16,8 @@ router = APIRouter(prefix="/api")
 
 
 @router.post("/bills/{short_code}/join", response_model=JoinResponse, status_code=201)
-async def join_bill(short_code: str, body: JoinRequest, session: AsyncSession = Depends(get_session)):
+@limiter.limit(settings.rate_limit)
+async def join_bill(request: Request, short_code: str, body: JoinRequest, session: AsyncSession = Depends(get_session)):
     bill = await bill_service.get_bill_by_code(session, short_code)
     if not bill:
         raise HTTPException(404, detail="Bill not found")
@@ -28,7 +31,8 @@ async def join_bill(short_code: str, body: JoinRequest, session: AsyncSession = 
 
 
 @router.get("/bills/{short_code}/participants/{participant_id}", response_model=ParticipantOut)
-async def get_participant(short_code: str, participant_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
+@limiter.limit(settings.rate_limit)
+async def get_participant(request: Request, short_code: str, participant_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     bill = await bill_service.get_bill_by_code(session, short_code)
     if not bill:
         raise HTTPException(404, detail="Bill not found")
@@ -42,7 +46,9 @@ async def get_participant(short_code: str, participant_id: uuid.UUID, session: A
 
 
 @router.patch("/bills/{short_code}/participants/{participant_id}/status", response_model=ParticipantOut)
+@limiter.limit(settings.rate_limit)
 async def update_participant_status(
+    request: Request,
     short_code: str,
     participant_id: uuid.UUID,
     body: UpdateStatusRequest,
