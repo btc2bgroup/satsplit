@@ -1,0 +1,118 @@
+import pytest
+
+
+def test_create_bill(client, mock_lnurl, mock_exchange):
+    resp = client.post("/api/bills", json={
+        "amount": 100.00,
+        "currency": "USD",
+        "num_people": 4,
+        "lightning_address": "test@example.com",
+        "description": "Dinner",
+    })
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["amount"] == 100.0
+    assert data["currency"] == "USD"
+    assert data["num_people"] == 4
+    assert len(data["short_code"]) == 8
+    assert data["participants"] == []
+
+
+def test_get_bill(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 50.0,
+        "currency": "EUR",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    resp = client.get(f"/api/bills/{code}")
+    assert resp.status_code == 200
+    assert resp.json()["short_code"] == code
+
+
+def test_get_bill_not_found(client):
+    resp = client.get("/api/bills/nonexist")
+    assert resp.status_code == 404
+
+
+def test_join_bill(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    resp = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["participant"]["name"] == "Alice"
+    assert data["participant"]["status"] == "invoice_created"
+    assert data["bolt11_invoice"] is not None
+
+
+def test_join_bill_duplicate_name(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 3,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    resp = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    assert resp.status_code == 400
+
+
+def test_join_bill_full(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    client.post(f"/api/bills/{code}/join", json={"name": "Bob"})
+    resp = client.post(f"/api/bills/{code}/join", json={"name": "Charlie"})
+    assert resp.status_code == 400
+
+
+def test_bill_status(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 3,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+
+    resp = client.get(f"/api/bills/{code}/status")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["joined"] == 1
+    assert data["paid"] == 0
+
+
+def test_get_participant(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    pid = join.json()["participant"]["id"]
+
+    resp = client.get(f"/api/bills/{code}/participants/{pid}")
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Alice"

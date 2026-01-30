@@ -1,0 +1,32 @@
+[project]
+name = "goingdutch"
+version = "0.1.0"
+description = "Bill splitting app using Bitcoin Lightning"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "httpx>=0.28",
+    "pydantic-settings>=2.7",
+    "shortuuid>=1.0",
+    "bolt11>=2.1",
+    "cachetools>=5.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-httpx>=0.34",
+    "aiosqlite>=0.20",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
