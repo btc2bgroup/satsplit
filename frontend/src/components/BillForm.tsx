@@ -44,10 +44,10 @@ export default function BillForm({ onSubmit }: Props) {
           <input
             id="amount"
             type="number"
-            step="0.01"
-            min="0.01"
+            step={currency === "SATS" ? "1" : "0.01"}
+            min={currency === "SATS" ? "1" : "0.01"}
             required
-            placeholder="100.00"
+            placeholder={currency === "SATS" ? "10000" : "100.00"}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className={inputClass}
@@ -64,6 +64,19 @@ export default function BillForm({ onSubmit }: Props) {
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
             <option value="GBP">GBP</option>
+            <option value="JPY">JPY</option>
+            <option value="CNY">CNY</option>
+            <option value="AUD">AUD</option>
+            <option value="CAD">CAD</option>
+            <option value="CHF">CHF</option>
+            <option value="HKD">HKD</option>
+            <option value="SGD">SGD</option>
+            <option value="SEK">SEK</option>
+            <option value="NOK">NOK</option>
+            <option value="KRW">KRW</option>
+            <option value="INR">INR</option>
+            <option value="BRL">BRL</option>
+            <option value="SATS">SATS</option>
           </select>
         </div>
       </div>
