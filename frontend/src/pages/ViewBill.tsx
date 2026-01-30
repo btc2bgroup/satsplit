@@ -63,7 +63,12 @@ export default function ViewBill() {
       )}
 
       {joinData ? (
-        <InvoiceDisplay bolt11={joinData.bolt11_invoice} />
+        <InvoiceDisplay
+          bolt11={joinData.bolt11_invoice}
+          fiatAmount={joinData.participant.share_amount_fiat}
+          currency={bill.currency}
+          msats={joinData.participant.share_amount_msats}
+        />
       ) : (
         !isCreator && (
           <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">

@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
-export default function InvoiceDisplay({ bolt11 }: { bolt11: string }) {
+interface InvoiceDisplayProps {
+  bolt11: string;
+  fiatAmount: number;
+  currency: string;
+  msats: number;
+}
+
+export default function InvoiceDisplay({ bolt11, fiatAmount, currency, msats }: InvoiceDisplayProps) {
   const [copied, setCopied] = useState(false);
+  const sats = Math.round(msats / 1000);
 
   function handleCopy() {
     navigator.clipboard.writeText(bolt11);
@@ -13,6 +21,8 @@ export default function InvoiceDisplay({ bolt11 }: { bolt11: string }) {
   return (
     <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 flex flex-col items-center space-y-4">
       <h3 className="text-lg font-semibold">Pay Your Share</h3>
+      <p className="text-2xl font-bold">{fiatAmount.toFixed(2)} {currency}</p>
+      <p className="text-sm text-slate-400">{sats.toLocaleString()} sats</p>
       <div className="bg-white p-4 rounded-xl">
         <QRCodeSVG value={bolt11} size={240} />
       </div>
