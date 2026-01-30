@@ -17,4 +17,10 @@ describe("ShareLink", () => {
     expect(spy).toHaveBeenCalledWith(expect.stringContaining("/bill/xyz789"));
     spy.mockRestore();
   });
+
+  it("renders a QR code SVG", () => {
+    const { container } = render(<ShareLink shortCode="qr1" />);
+    const svg = container.querySelector("svg");
+    expect(svg).toBeInTheDocument();
+  });
 });
