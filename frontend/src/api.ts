@@ -68,4 +68,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ name }),
     }),
+
+  updateParticipantStatus: (code: string, participantId: string, status: string) =>
+    request<ParticipantOut>(`/bills/${code}/participants/${participantId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
 };

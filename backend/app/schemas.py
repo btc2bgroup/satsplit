@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -53,6 +54,10 @@ class JoinRequest(BaseModel):
 class JoinResponse(BaseModel):
     participant: ParticipantOut
     bolt11_invoice: str
+
+
+class UpdateStatusRequest(BaseModel):
+    status: Literal["paid", "invoice_created"]
 
 
 class ExchangeRateOut(BaseModel):

@@ -85,6 +85,21 @@ async def join_bill(session: AsyncSession, bill: Bill, name: str) -> Participant
     return participant
 
 
+async def update_participant_status(
+    session: AsyncSession, bill: Bill, participant_id: uuid.UUID, new_status: str
+) -> Participant | None:
+    result = await session.execute(
+        select(Participant).where(Participant.id == participant_id, Participant.bill_id == bill.id)
+    )
+    participant = result.scalar_one_or_none()
+    if not participant:
+        return None
+    participant.status = new_status
+    await session.commit()
+    await session.refresh(participant)
+    return participant
+
+
 def _extract_payment_hash(bolt11: str) -> str | None:
     try:
         from bolt11 import decode

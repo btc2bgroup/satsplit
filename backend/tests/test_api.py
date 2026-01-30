@@ -116,3 +116,57 @@ def test_get_participant(client, mock_lnurl, mock_exchange):
     resp = client.get(f"/api/bills/{code}/participants/{pid}")
     assert resp.status_code == 200
     assert resp.json()["name"] == "Alice"
+
+
+def test_update_participant_status_to_paid(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    pid = join.json()["participant"]["id"]
+
+    resp = client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "paid"})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "paid"
+
+
+def test_update_participant_status_to_unpaid(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    pid = join.json()["participant"]["id"]
+
+    client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "paid"})
+    resp = client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "invoice_created"})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "invoice_created"
+
+
+def test_update_participant_status_not_found(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    resp = client.patch(f"/api/bills/{code}/participants/00000000-0000-0000-0000-000000000000/status",
+                        json={"status": "paid"})
+    assert resp.status_code == 404
+
+
+def test_update_participant_status_invalid(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    pid = join.json()["participant"]["id"]
+
+    resp = client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "invalid"})
+    assert resp.status_code == 422

@@ -7,6 +7,7 @@ import JoinForm from "../components/JoinForm";
 import InvoiceDisplay from "../components/InvoiceDisplay";
 import ProgressBar from "../components/ProgressBar";
 import ShareLink from "../components/ShareLink";
+import ParticipantList from "../components/ParticipantList";
 
 export default function ViewBill() {
   const { shortCode } = useParams<{ shortCode: string }>();
@@ -50,6 +51,16 @@ export default function ViewBill() {
       {status && <ProgressBar status={status} />}
 
       {isCreator && <ShareLink shortCode={shortCode!} />}
+
+      {isCreator && bill.participants.length > 0 && (
+        <ParticipantList
+          shortCode={shortCode!}
+          participants={bill.participants}
+          onStatusChanged={() => {
+            api.getBill(shortCode!).then(setBill);
+          }}
+        />
+      )}
 
       {joinData ? (
         <InvoiceDisplay bolt11={joinData.bolt11_invoice} />

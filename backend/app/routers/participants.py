@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
 from app.models import Participant
-from app.schemas import JoinRequest, JoinResponse, ParticipantOut
+from app.schemas import JoinRequest, JoinResponse, ParticipantOut, UpdateStatusRequest
 from app.services import bill_service
 from app.services.lnurl import LnurlError
 
@@ -36,6 +36,22 @@ async def get_participant(short_code: str, participant_id: uuid.UUID, session: A
         select(Participant).where(Participant.id == participant_id, Participant.bill_id == bill.id)
     )
     participant = result.scalar_one_or_none()
+    if not participant:
+        raise HTTPException(404, detail="Participant not found")
+    return participant
+
+
+@router.patch("/bills/{short_code}/participants/{participant_id}/status", response_model=ParticipantOut)
+async def update_participant_status(
+    short_code: str,
+    participant_id: uuid.UUID,
+    body: UpdateStatusRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    bill = await bill_service.get_bill_by_code(session, short_code)
+    if not bill:
+        raise HTTPException(404, detail="Bill not found")
+    participant = await bill_service.update_participant_status(session, bill, participant_id, body.status)
     if not participant:
         raise HTTPException(404, detail="Participant not found")
     return participant

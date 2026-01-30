@@ -55,6 +55,20 @@ describe("api client", () => {
     await expect(api.getBill("bad")).rejects.toThrow("404: Not found");
   });
 
+  it("updateParticipantStatus sends PATCH with status", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ id: "p1", status: "paid" }),
+    } as Response);
+
+    await api.updateParticipantStatus("abc", "p1", "paid");
+    expect(fetch).toHaveBeenCalledWith("/api/bills/abc/participants/p1/status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "paid" }),
+    });
+  });
+
   it("joinBill sends POST with name", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
       ok: true,
