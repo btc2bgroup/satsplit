@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: goingdutch
+      POSTGRES_DB: satsplit
     ports:
       - "5433:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
     ports:
       - "8001:8000"
     environment:
-      GD_DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/goingdutch
+      GD_DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/satsplit
     depends_on:
       db:
         condition: service_healthy

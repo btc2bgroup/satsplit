@@ -1,5 +1,5 @@
 [project]
-name = "goingdutch"
+name = "satsplit"
 version = "0.1.0"
 description = "Bill splitting app using Bitcoin Lightning"
 requires-python = ">=3.10"
