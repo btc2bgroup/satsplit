@@ -5,12 +5,18 @@ import BillForm from "../components/BillForm";
 export default function CreateBill() {
   const navigate = useNavigate();
 
-  async function handleCreate(data: BillCreate) {
+  async function handleCreate(data: BillCreate, donationSats: number | null) {
     const bill = await api.createBill(data);
     const stored = JSON.parse(localStorage.getItem("created_bills") || "[]");
     stored.push(bill.short_code);
     localStorage.setItem("created_bills", JSON.stringify(stored));
-    navigate(`/bill/${bill.short_code}`);
+
+    if (donationSats) {
+      const { checkout_url } = await api.createDonation(bill.short_code, donationSats);
+      window.location.href = checkout_url;
+    } else {
+      navigate(`/bill/${bill.short_code}`);
+    }
   }
 
   return (

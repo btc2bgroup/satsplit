@@ -74,4 +74,10 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+
+  createDonation: (billShortCode: string, amountSats: number) =>
+    request<{ checkout_url: string }>("/donations", {
+      method: "POST",
+      body: JSON.stringify({ bill_short_code: billShortCode, amount_sats: amountSats }),
+    }),
 };

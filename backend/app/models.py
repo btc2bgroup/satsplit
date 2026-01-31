@@ -40,3 +40,14 @@ class Participant(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     bill: Mapped["Bill"] = relationship(back_populates="participants")
+
+
+class Donation(Base):
+    __tablename__ = "donations"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bill_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("bills.id"))
+    amount_sats: Mapped[int]
+    btcpay_invoice_id: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())

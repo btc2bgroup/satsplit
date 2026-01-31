@@ -69,6 +69,21 @@ describe("api client", () => {
     });
   });
 
+  it("createDonation sends POST with bill_short_code and amount_sats", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ checkout_url: "https://btcpay.example/checkout/123" }),
+    } as Response);
+
+    const result = await api.createDonation("abc", 210);
+    expect(fetch).toHaveBeenCalledWith("/api/donations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bill_short_code: "abc", amount_sats: 210 }),
+    });
+    expect(result).toEqual({ checkout_url: "https://btcpay.example/checkout/123" });
+  });
+
   it("joinBill sends POST with name", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
       ok: true,

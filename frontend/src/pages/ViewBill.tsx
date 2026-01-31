@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { api, type BillOut, type JoinResponse } from "../api";
 import BillSummary from "../components/BillSummary";
 import JoinForm from "../components/JoinForm";
@@ -9,14 +9,24 @@ import ParticipantList from "../components/ParticipantList";
 
 export default function ViewBill() {
   const { shortCode } = useParams<{ shortCode: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [bill, setBill] = useState<BillOut | null>(null);
   const [joinData, setJoinData] = useState<JoinResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showDonationBanner, setShowDonationBanner] = useState(false);
   const isCreator = (() => {
     const stored = JSON.parse(localStorage.getItem("created_bills") || "[]");
     return stored.includes(shortCode);
   })();
+
+  useEffect(() => {
+    if (searchParams.get("donated") === "1") {
+      setShowDonationBanner(true);
+      searchParams.delete("donated");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!shortCode) return;
@@ -42,6 +52,17 @@ export default function ViewBill() {
 
   return (
     <div className="space-y-6">
+      {showDonationBanner && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+          <span className="text-green-800 text-sm font-medium">Thanks for the donation!</span>
+          <button
+            onClick={() => setShowDonationBanner(false)}
+            className="text-green-600 hover:text-green-800 text-lg leading-none"
+          >
+            &times;
+          </button>
+        </div>
+      )}
       <BillSummary bill={bill} shareUrl={isCreator ? `${window.location.origin}/bill/${shortCode}` : undefined} />
 
       {isCreator && <ShareLink shortCode={shortCode!} />}

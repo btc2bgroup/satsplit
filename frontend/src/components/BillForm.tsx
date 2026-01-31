@@ -2,7 +2,7 @@ import { type FormEvent, useState } from "react";
 import type { BillCreate } from "../api";
 
 interface Props {
-  onSubmit: (data: BillCreate) => Promise<void>;
+  onSubmit: (data: BillCreate, donationSats: number | null) => Promise<void>;
 }
 
 export default function BillForm({ onSubmit }: Props) {
@@ -13,19 +13,24 @@ export default function BillForm({ onSubmit }: Props) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [donateEnabled, setDonateEnabled] = useState(false);
+  const [donationSats, setDonationSats] = useState(210);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await onSubmit({
-        amount: parseFloat(amount),
-        currency,
-        num_people: parseInt(numPeople),
-        lightning_address: lightningAddress,
-        description: description || undefined,
-      });
+      await onSubmit(
+        {
+          amount: parseFloat(amount),
+          currency,
+          num_people: parseInt(numPeople),
+          lightning_address: lightningAddress,
+          description: description || undefined,
+        },
+        donateEnabled ? donationSats : null,
+      );
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -118,6 +123,34 @@ export default function BillForm({ onSubmit }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           className={inputClass}
         />
+      </div>
+
+      <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={donateEnabled}
+            onChange={(e) => setDonateEnabled(e.target.checked)}
+            className="w-4 h-4 accent-[#f7931a]"
+          />
+          <span className="text-sm text-gray-700">I want to support this project</span>
+        </label>
+        {donateEnabled && (
+          <div className="flex gap-3 pl-7">
+            {[21, 210, 2100].map((sats) => (
+              <label key={sats} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="donation"
+                  checked={donationSats === sats}
+                  onChange={() => setDonationSats(sats)}
+                  className="accent-[#f7931a]"
+                />
+                <span className="text-sm text-gray-700">{sats} sats</span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
