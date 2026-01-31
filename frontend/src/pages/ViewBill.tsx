@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api, type BillOut, type JoinResponse } from "../api";
-import { usePollStatus } from "../hooks/usePollStatus";
 import BillSummary from "../components/BillSummary";
 import JoinForm from "../components/JoinForm";
 import InvoiceDisplay from "../components/InvoiceDisplay";
-import ProgressBar from "../components/ProgressBar";
 import ShareLink from "../components/ShareLink";
 import ParticipantList from "../components/ParticipantList";
 
@@ -15,8 +13,6 @@ export default function ViewBill() {
   const [joinData, setJoinData] = useState<JoinResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const status = usePollStatus(shortCode);
-
   const isCreator = (() => {
     const stored = JSON.parse(localStorage.getItem("created_bills") || "[]");
     return stored.includes(shortCode);
@@ -49,8 +45,6 @@ export default function ViewBill() {
       <BillSummary bill={bill} />
 
       {isCreator && <ShareLink shortCode={shortCode!} />}
-
-      {isCreator && status && <ProgressBar status={status} />}
 
       {isCreator && bill.participants.length > 0 && (
         <ParticipantList

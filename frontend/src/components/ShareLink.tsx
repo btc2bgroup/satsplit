@@ -20,17 +20,15 @@ export default function ShareLink({ shortCode }: { shortCode: string }) {
           value={url}
           className="flex-1 bg-transparent text-gray-700 text-sm font-mono truncate outline-none"
         />
-      </div>
-      <div className="flex gap-3">
         <button
           onClick={handleCopy}
-          className="flex-1 bg-[#f7931a] hover:bg-[#e8851a] text-white text-sm px-4 py-2 rounded-lg transition"
+          className="bg-[#f7931a] hover:bg-[#e8851a] text-white text-sm px-4 py-2 rounded-lg transition whitespace-nowrap"
         >
           {copied ? "Copied!" : "Copy Link"}
         </button>
         <button
           onClick={() => setShowQR(true)}
-          className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg transition"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg transition whitespace-nowrap"
         >
           Show QR
         </button>
