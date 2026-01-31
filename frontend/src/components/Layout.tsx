@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="w-full max-w-lg">
           <div className="flex justify-center mb-8">
             <Link to="/" className="hover:opacity-80 transition">
-              <img src="/logo.png" alt="SatSplit" className="h-16" />
+              <img src="/logo.png" alt="SatSplit" className="max-w-[192px]" />
             </Link>
           </div>
           {children}
