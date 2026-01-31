@@ -21,6 +21,9 @@ services:
       - "8001:8000"
     environment:
       GD_DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/satsplit
+      GD_BTCPAY_URL: ${GD_BTCPAY_URL}
+      GD_BTCPAY_API_KEY: ${GD_BTCPAY_API_KEY}
+      GD_BTCPAY_STORE_ID: ${GD_BTCPAY_STORE_ID}
     depends_on:
       db:
         condition: service_healthy
