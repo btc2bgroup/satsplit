@@ -3,12 +3,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import ShareLink from "../components/ShareLink";
 
 describe("ShareLink", () => {
-  it("displays the share URL", () => {
-    render(<ShareLink shortCode="abc123" />);
-    const input = screen.getByDisplayValue(/\/bill\/abc123/);
-    expect(input).toBeInTheDocument();
-  });
-
   it("copies URL to clipboard on click", () => {
     const spy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     render(<ShareLink shortCode="xyz789" />);

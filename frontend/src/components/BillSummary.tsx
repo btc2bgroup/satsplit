@@ -1,6 +1,6 @@
 import type { BillOut } from "../api";
 
-export default function BillSummary({ bill }: { bill: BillOut }) {
+export default function BillSummary({ bill, shareUrl }: { bill: BillOut; shareUrl?: string }) {
   const perPerson = (bill.amount / bill.num_people).toFixed(2);
 
   return (
@@ -19,6 +19,14 @@ export default function BillSummary({ bill }: { bill: BillOut }) {
         <span className="text-right font-medium text-[#f7931a]">
           {perPerson} {bill.currency}
         </span>
+        {shareUrl && (
+          <>
+            <span className="text-gray-500">Share link</span>
+            <span className="text-right font-mono text-xs text-gray-700 truncate">
+              {shareUrl}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export default function ViewBill() {
 
   return (
     <div className="space-y-6">
-      <BillSummary bill={bill} />
+      <BillSummary bill={bill} shareUrl={isCreator ? `${window.location.origin}/bill/${shortCode}` : undefined} />
 
       {isCreator && <ShareLink shortCode={shortCode!} />}
 

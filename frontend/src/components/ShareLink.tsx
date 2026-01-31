@@ -13,22 +13,17 @@ export default function ShareLink({ shortCode }: { shortCode: string }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3">
-        <input
-          readOnly
-          value={url}
-          className="flex-1 bg-transparent text-gray-700 text-sm font-mono truncate outline-none"
-        />
+    <div>
+      <div className="flex gap-3">
         <button
           onClick={handleCopy}
-          className="bg-[#f7931a] hover:bg-[#e8851a] text-white text-sm px-4 py-2 rounded-lg transition whitespace-nowrap"
+          className="flex-1 bg-[#f7931a] hover:bg-[#e8851a] text-white text-sm px-4 py-2 rounded-lg transition"
         >
           {copied ? "Copied!" : "Copy Link"}
         </button>
         <button
           onClick={() => setShowQR(true)}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg transition whitespace-nowrap"
+          className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg transition"
         >
           Show QR
         </button>
