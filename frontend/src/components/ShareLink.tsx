@@ -13,11 +13,11 @@ export default function ShareLink({ shortCode }: { shortCode: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex items-center gap-3">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3">
         <input
           readOnly
           value={url}
-          className="flex-1 bg-transparent text-slate-300 text-sm font-mono truncate outline-none"
+          className="flex-1 bg-transparent text-gray-700 text-sm font-mono truncate outline-none"
         />
         <button
           onClick={handleCopy}

@@ -23,11 +23,11 @@ export default function JoinForm({ onJoin }: Props) {
   }
 
   const inputClass =
-    "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#f7931a] transition";
+    "w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#f7931a] transition";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <label htmlFor="join_name" className="block text-sm text-slate-400">Your name</label>
+      <label htmlFor="join_name" className="block text-sm text-gray-600">Your name</label>
       <input
         id="join_name"
         type="text"
@@ -39,7 +39,7 @@ export default function JoinForm({ onJoin }: Props) {
         onChange={(e) => setName(e.target.value)}
         className={inputClass}
       />
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
       <button
         type="submit"
         disabled={loading}

@@ -34,13 +34,13 @@ export default function BillForm({ onSubmit }: Props) {
   }
 
   const inputClass =
-    "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#f7931a] transition";
+    "w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#f7931a] transition";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex gap-3">
         <div className="flex-1">
-          <label htmlFor="amount" className="block text-sm text-slate-400 mb-1">Amount</label>
+          <label htmlFor="amount" className="block text-sm text-gray-600 mb-1">Amount</label>
           <input
             id="amount"
             type="number"
@@ -54,7 +54,7 @@ export default function BillForm({ onSubmit }: Props) {
           />
         </div>
         <div className="w-28">
-          <label htmlFor="currency" className="block text-sm text-slate-400 mb-1">Currency</label>
+          <label htmlFor="currency" className="block text-sm text-gray-600 mb-1">Currency</label>
           <select
             id="currency"
             value={currency}
@@ -82,7 +82,7 @@ export default function BillForm({ onSubmit }: Props) {
       </div>
 
       <div>
-        <label htmlFor="num_people" className="block text-sm text-slate-400 mb-1">Number of people</label>
+        <label htmlFor="num_people" className="block text-sm text-gray-600 mb-1">Number of people</label>
         <input
           id="num_people"
           type="number"
@@ -96,7 +96,7 @@ export default function BillForm({ onSubmit }: Props) {
       </div>
 
       <div>
-        <label htmlFor="lightning_address" className="block text-sm text-slate-400 mb-1">Your Lightning Address</label>
+        <label htmlFor="lightning_address" className="block text-sm text-gray-600 mb-1">Your Lightning Address</label>
         <input
           id="lightning_address"
           type="text"
@@ -109,7 +109,7 @@ export default function BillForm({ onSubmit }: Props) {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm text-slate-400 mb-1">Description (optional)</label>
+        <label htmlFor="description" className="block text-sm text-gray-600 mb-1">Description (optional)</label>
         <input
           id="description"
           type="text"
@@ -120,7 +120,7 @@ export default function BillForm({ onSubmit }: Props) {
         />
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
       <button
         type="submit"

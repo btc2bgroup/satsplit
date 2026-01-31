@@ -37,11 +37,11 @@ export default function ViewBill() {
   }
 
   if (loading) {
-    return <p className="text-center text-slate-400">Loading...</p>;
+    return <p className="text-center text-gray-500">Loading...</p>;
   }
 
   if (error || !bill) {
-    return <p className="text-center text-red-400">{error || "Bill not found"}</p>;
+    return <p className="text-center text-red-600">{error || "Bill not found"}</p>;
   }
 
   return (
@@ -71,7 +71,7 @@ export default function ViewBill() {
         />
       ) : (
         !isCreator && (
-          <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <JoinForm onJoin={handleJoin} />
           </div>
         )

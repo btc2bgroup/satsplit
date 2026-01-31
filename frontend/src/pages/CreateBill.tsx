@@ -17,9 +17,9 @@ export default function CreateBill() {
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold">Split a Bill</h1>
-        <p className="text-slate-400">Pay your share with Lightning</p>
+        <p className="text-gray-500">Pay your share with Lightning</p>
       </div>
-      <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
         <BillForm onSubmit={handleCreate} />
       </div>
     </div>
