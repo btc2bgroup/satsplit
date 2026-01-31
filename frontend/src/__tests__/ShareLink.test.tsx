@@ -18,9 +18,11 @@ describe("ShareLink", () => {
     spy.mockRestore();
   });
 
-  it("renders a QR code SVG", () => {
+  it("QR code is hidden by default and shown after clicking Show QR", () => {
     const { container } = render(<ShareLink shortCode="qr1" />);
-    const svg = container.querySelector("svg");
-    expect(svg).toBeInTheDocument();
+    expect(container.querySelector("svg")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Show QR"));
+    expect(container.querySelector("svg")).toBeInTheDocument();
   });
 });

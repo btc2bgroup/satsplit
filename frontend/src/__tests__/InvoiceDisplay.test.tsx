@@ -25,11 +25,6 @@ describe("InvoiceDisplay", () => {
     spy.mockRestore();
   });
 
-  it("displays the bolt11 string", () => {
-    render(<InvoiceDisplay {...defaultProps} bolt11="lnbc_test_invoice" />);
-    expect(screen.getByText("lnbc_test_invoice")).toBeInTheDocument();
-  });
-
   it("displays fiat and sats amounts", () => {
     render(<InvoiceDisplay {...defaultProps} fiatAmount={12.5} currency="EUR" msats={75000000} />);
     expect(screen.getByText("12.50 EUR")).toBeInTheDocument();

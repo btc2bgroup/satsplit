@@ -40,7 +40,6 @@ export default function InvoiceDisplay({ bolt11, fiatAmount, currency, msats }: 
           Open Wallet
         </a>
       </div>
-      <p className="text-xs text-gray-500 break-all font-mono">{bolt11}</p>
     </div>
   );
 }

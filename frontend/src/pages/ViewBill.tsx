@@ -48,9 +48,9 @@ export default function ViewBill() {
     <div className="space-y-6">
       <BillSummary bill={bill} />
 
-      {status && <ProgressBar status={status} />}
-
       {isCreator && <ShareLink shortCode={shortCode!} />}
+
+      {isCreator && status && <ProgressBar status={status} />}
 
       {isCreator && bill.participants.length > 0 && (
         <ParticipantList
