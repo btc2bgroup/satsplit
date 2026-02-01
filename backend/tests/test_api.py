@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from limits import parse_many
 from slowapi.util import get_remote_address
@@ -177,6 +179,30 @@ def test_update_participant_status_not_found(client, mock_lnurl, mock_exchange):
     resp = client.patch(f"/api/bills/{code}/participants/00000000-0000-0000-0000-000000000000/status",
                         json={"status": "paid"})
     assert resp.status_code == 404
+
+
+def test_create_bill_share_below_min_sendable(client, mock_exchange):
+    """10 SATS / 4 people = 3 sats (rounded up), but min_sendable is 1000 msats (1 sat) by default.
+    Use a high min_sendable to trigger the validation."""
+    high_min = {
+        "callback": "https://example.com/lnurlp/callback",
+        "min_sendable": 5_000_000,  # 5000 sats
+        "max_sendable": 100_000_000_000,
+        "comment_length": 100,
+    }
+    with patch(
+        "app.services.lnurl.resolve_lightning_address",
+        new_callable=AsyncMock,
+        return_value=high_min,
+    ):
+        resp = client.post("/api/bills", json={
+            "amount": 10,
+            "currency": "SATS",
+            "num_people": 4,
+            "lightning_address": "test@example.com",
+        })
+        assert resp.status_code == 400
+        assert "below the minimum" in resp.json()["detail"]
 
 
 def test_update_participant_status_invalid(client, mock_lnurl, mock_exchange):
