@@ -18,7 +18,17 @@ async def create_bill(
     description: str | None = None,
 ) -> Bill:
     # Validate lightning address is resolvable
-    await lnurl.resolve_lightning_address(lightning_address)
+    lnurl_data = await lnurl.resolve_lightning_address(lightning_address)
+
+    # Validate per-person share meets minimum sendable
+    share_fiat = round(amount / num_people, 2)
+    share_msats = await exchange.fiat_to_msats(share_fiat, currency)
+    if share_msats < lnurl_data["min_sendable"]:
+        min_sats = lnurl_data["min_sendable"] // 1000
+        raise ValueError(
+            f"Per-person share ({share_msats // 1000} sats) is below the minimum "
+            f"sendable amount ({min_sats} sats) for this lightning address"
+        )
 
     bill = Bill(
         id=uuid.uuid4(),

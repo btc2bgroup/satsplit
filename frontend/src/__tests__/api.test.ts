@@ -45,14 +45,24 @@ describe("api client", () => {
     });
   });
 
-  it("throws on non-ok response", async () => {
+  it("throws detail from JSON error response", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
       ok: false,
       status: 404,
-      text: () => Promise.resolve("Not found"),
+      json: () => Promise.resolve({ detail: "Bill not found" }),
     } as Response);
 
-    await expect(api.getBill("bad")).rejects.toThrow("404: Not found");
+    await expect(api.getBill("bad")).rejects.toThrow("Bill not found");
+  });
+
+  it("throws friendly message on non-JSON 502", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: () => Promise.reject(new Error("not json")),
+    } as Response);
+
+    await expect(api.getBill("bad")).rejects.toThrow("Server is temporarily unavailable");
   });
 
   it("updateParticipantStatus sends PATCH with status", async () => {

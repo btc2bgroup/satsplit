@@ -49,8 +49,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`${res.status}: ${body}`);
+    let message: string;
+    try {
+      const json = await res.json();
+      message = json.detail || JSON.stringify(json);
+    } catch {
+      if (res.status === 502) {
+        message = "Server is temporarily unavailable. Please try again later.";
+      } else if (res.status === 503) {
+        message = "Service is temporarily unavailable. Please try again later.";
+      } else if (res.status === 504) {
+        message = "Request timed out. Please try again.";
+      } else {
+        message = `Unexpected error (${res.status})`;
+      }
+    }
+    throw new Error(message);
   }
   return res.json();
 }

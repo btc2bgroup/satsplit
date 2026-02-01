@@ -23,7 +23,7 @@ async def create_bill(request: Request, body: BillCreate, session: AsyncSession 
             lightning_address=body.lightning_address,
             description=body.description,
         )
-    except LnurlError as e:
+    except (LnurlError, ValueError) as e:
         raise HTTPException(400, detail=str(e))
     return bill
 
