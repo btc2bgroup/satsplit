@@ -1,5 +1,9 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.config import settings
 from app.database import get_session
@@ -24,6 +28,7 @@ async def create_bill(request: Request, body: BillCreate, session: AsyncSession 
             description=body.description,
         )
     except (LnurlError, ValueError) as e:
+        logger.warning("Bill creation failed: %s", e)
         raise HTTPException(400, detail=str(e))
     return bill
 
@@ -57,5 +62,6 @@ async def get_exchange_rate(request: Request, currency: str = Query(default="USD
     try:
         price = await exchange.get_btc_price(currency.upper())
     except Exception as e:
-        raise HTTPException(502, detail=f"Failed to fetch exchange rate: {e}")
+        logger.error("Exchange rate fetch failed: %s", e)
+        raise HTTPException(422, detail=f"Failed to fetch exchange rate: {e}")
     return ExchangeRateOut(currency=currency.upper(), btc_price=price)

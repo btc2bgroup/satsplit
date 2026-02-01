@@ -1,4 +1,8 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
+
+logger = logging.getLogger(__name__)
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +44,8 @@ async def create_donation(
     try:
         inv = await create_invoice(body.amount_sats, redirect_url)
     except BtcPayError as e:
-        raise HTTPException(502, detail=str(e))
+        logger.error("BTCPay invoice creation failed for bill %s: %s", body.bill_short_code, e)
+        raise HTTPException(422, detail=str(e))
 
     donation = Donation(
         bill_id=bill.id,

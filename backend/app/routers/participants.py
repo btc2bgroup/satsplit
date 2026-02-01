@@ -1,6 +1,9 @@
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+
+logger = logging.getLogger(__name__)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,9 +27,11 @@ async def join_bill(request: Request, short_code: str, body: JoinRequest, sessio
     try:
         participant = await bill_service.join_bill(session, bill, body.name)
     except ValueError as e:
+        logger.warning("Join bill %s failed: %s", short_code, e)
         raise HTTPException(400, detail=str(e))
     except LnurlError as e:
-        raise HTTPException(502, detail=str(e))
+        logger.error("Join bill %s LNURL error: %s", short_code, e)
+        raise HTTPException(422, detail=str(e))
     return JoinResponse(participant=ParticipantOut.model_validate(participant), bolt11_invoice=participant.bolt11_invoice)
 
 
