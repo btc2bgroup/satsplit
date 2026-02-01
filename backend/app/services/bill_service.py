@@ -73,7 +73,9 @@ async def join_bill(session: AsyncSession, bill: Bill, name: str) -> Participant
             f"({lnurl_data['min_sendable']}-{lnurl_data['max_sendable']})"
         )
 
-    comment = name if lnurl_data["comment_length"] >= len(name) else None
+    bill_label = bill.description or "Split bill"
+    comment_text = f"satsplit.app - {bill_label} ({name})"
+    comment = comment_text if lnurl_data["comment_length"] >= len(comment_text) else None
     invoice_data = await lnurl.fetch_invoice(lnurl_data["callback"], share_msats, comment)
 
     # Extract payment hash from bolt11
