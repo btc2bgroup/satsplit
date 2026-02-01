@@ -37,7 +37,7 @@ async def fiat_to_msats(amount: float, currency: str) -> int:
     """Convert a fiat amount to millisatoshis."""
     currency = currency.upper()
     if currency == "SATS":
-        return int(amount * 1000)
+        return math.ceil(amount) * 1000
     if currency == "BTC":
         return int(amount * 1e11)
 
