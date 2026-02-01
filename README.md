@@ -46,6 +46,12 @@ docker compose up db
 
 ## Configuration
 
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
 All backend settings use the `GD_` env prefix (see `backend/app/config.py`).
 
 | Variable | Description | Default |
