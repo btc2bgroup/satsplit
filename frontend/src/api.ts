@@ -41,6 +41,25 @@ export interface JoinResponse {
   bolt11_invoice: string;
 }
 
+export interface CurrencyTotal {
+  currency: string;
+  total: number;
+  count: number;
+}
+
+export interface DateCount {
+  date: string;
+  count: number;
+}
+
+export interface StatsOut {
+  total_bills: number;
+  total_participants: number;
+  total_value_by_currency: CurrencyTotal[];
+  bills_over_time: DateCount[];
+  participants_over_time: DateCount[];
+}
+
 const BASE = "/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -94,4 +113,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ bill_short_code: billShortCode, amount_sats: amountSats }),
     }),
+
+  getStats: () => request<StatsOut>("/stats"),
 };

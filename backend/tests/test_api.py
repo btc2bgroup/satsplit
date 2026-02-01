@@ -216,3 +216,40 @@ def test_update_participant_status_invalid(client, mock_lnurl, mock_exchange):
 
     resp = client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "invalid"})
     assert resp.status_code == 422
+
+
+def test_stats_empty(client):
+    resp = client.get("/api/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total_bills"] == 0
+    assert data["total_participants"] == 0
+    assert data["total_value_by_currency"] == []
+    assert data["bills_over_time"] == []
+    assert data["participants_over_time"] == []
+
+
+def test_stats_with_data(client, mock_lnurl, mock_exchange):
+    client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    create2 = client.post("/api/bills", json={
+        "amount": 50.0, "currency": "EUR", "num_people": 3,
+        "lightning_address": "test@example.com",
+    })
+    code2 = create2.json()["short_code"]
+    client.post(f"/api/bills/{code2}/join", json={"name": "Alice"})
+
+    resp = client.get("/api/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total_bills"] == 2
+    assert data["total_participants"] == 1
+    assert len(data["total_value_by_currency"]) == 2
+    currencies = {c["currency"]: c for c in data["total_value_by_currency"]}
+    assert currencies["USD"]["total"] == 100.0
+    assert currencies["USD"]["count"] == 1
+    assert currencies["EUR"]["total"] == 50.0
+    assert len(data["bills_over_time"]) >= 1
+    assert len(data["participants_over_time"]) >= 1

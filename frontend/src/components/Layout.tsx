@@ -19,6 +19,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="flex items-center justify-center gap-3">
           <Link to="/about" className="hover:text-gray-700 transition">About</Link>
           <span className="text-gray-300">|</span>
+          <Link to="/stats" className="hover:text-gray-700 transition">Stats</Link>
+          <span className="text-gray-300">|</span>
           <a
             href="https://github.com/btc2bgroup/satsplit"
             target="_blank"

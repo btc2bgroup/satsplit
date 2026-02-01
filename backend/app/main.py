@@ -8,7 +8,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import settings
 from app.limiter import limiter
-from app.routers import bills, donations, participants
+from app.routers import bills, donations, participants, stats
 
 
 @asynccontextmanager
@@ -32,3 +32,4 @@ app.add_middleware(
 app.include_router(bills.router)
 app.include_router(donations.router)
 app.include_router(participants.router)
+app.include_router(stats.router)
