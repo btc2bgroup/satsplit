@@ -26,6 +26,7 @@ async def create_bill(request: Request, body: BillCreate, session: AsyncSession 
             num_people=body.num_people,
             lightning_address=body.lightning_address,
             description=body.description,
+            participant_names=body.participant_names,
         )
     except (LnurlError, ValueError) as e:
         logger.warning("Bill creation failed: %s", e)

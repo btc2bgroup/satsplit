@@ -67,10 +67,11 @@ export default function ViewBill() {
 
       {isCreator && <ShareLink shortCode={shortCode!} />}
 
-      {isCreator && bill.participants.length > 0 && (
+      {isCreator && (bill.participants.length > 0 || bill.participant_names) && (
         <ParticipantList
           shortCode={shortCode!}
           participants={bill.participants}
+          predefinedNames={bill.participant_names}
           onStatusChanged={() => {
             api.getBill(shortCode!).then(setBill);
           }}
@@ -87,7 +88,18 @@ export default function ViewBill() {
       ) : (
         !isCreator && (
           <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <JoinForm onJoin={handleJoin} />
+            <JoinForm
+              onJoin={handleJoin}
+              availableNames={
+                bill.participant_names
+                  ? bill.participant_names.filter(
+                      (n) => !bill.participants.some(
+                        (p) => p.name.toLowerCase() === n.toLowerCase() && p.status === "paid",
+                      ),
+                    )
+                  : undefined
+              }
+            />
           </div>
         )
       )}

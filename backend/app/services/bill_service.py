@@ -16,6 +16,7 @@ async def create_bill(
     num_people: int,
     lightning_address: str,
     description: str | None = None,
+    participant_names: list[str] | None = None,
 ) -> Bill:
     # Validate lightning address is resolvable
     lnurl_data = await lnurl.resolve_lightning_address(lightning_address)
@@ -30,6 +31,18 @@ async def create_bill(
             f"sendable amount ({min_sats} sats) for this lightning address"
         )
 
+    # Validate participant names if provided
+    if participant_names is not None:
+        names = [n.strip() for n in participant_names if n.strip()]
+        if len(names) != len(set(n.lower() for n in names)):
+            raise ValueError("Participant names must be unique")
+        if len(names) != num_people:
+            raise ValueError(
+                f"Number of participant names ({len(names)}) must match "
+                f"number of people ({num_people})"
+            )
+        participant_names = names
+
     bill = Bill(
         id=uuid.uuid4(),
         short_code=shortuuid.ShortUUID().random(length=8),
@@ -38,6 +51,7 @@ async def create_bill(
         num_people=num_people,
         lightning_address=lightning_address,
         description=description,
+        participant_names=participant_names,
     )
     session.add(bill)
     await session.commit()
@@ -55,10 +69,19 @@ async def join_bill(session: AsyncSession, bill: Bill, name: str) -> Participant
     if len(bill.participants) >= bill.num_people:
         raise ValueError("Bill is full")
 
-    # Check duplicate name
+    # If bill has predefined names, validate against them
+    if bill.participant_names:
+        valid = [n for n in bill.participant_names if n.lower() == name.lower()]
+        if not valid:
+            raise ValueError(f"Name '{name}' is not in the participant list")
+        name = valid[0]  # Use the original casing from the creator
+
+    # Check duplicate name — return existing participant if unpaid
     for p in bill.participants:
         if p.name.lower() == name.lower():
-            raise ValueError(f"Name '{name}' is already taken")
+            if p.status == "paid":
+                raise ValueError(f"'{name}' has already paid")
+            return p
 
     # Calculate share
     share_fiat = round(float(bill.amount) / bill.num_people, 2)

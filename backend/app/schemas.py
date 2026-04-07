@@ -2,15 +2,25 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class BillCreate(BaseModel):
     amount: float = Field(gt=0)
     currency: str = Field(max_length=4)
-    num_people: int = Field(ge=2)
+    num_people: int = Field(ge=2, le=100)
     lightning_address: str = Field(max_length=320)
     description: str | None = Field(None, max_length=256)
+    participant_names: list[str] | None = Field(None, max_length=100)
+
+    @field_validator("participant_names")
+    @classmethod
+    def validate_participant_names(cls, v: list[str] | None) -> list[str] | None:
+        if v is not None:
+            for name in v:
+                if len(name) > 100:
+                    raise ValueError("Participant name must be 100 characters or less")
+        return v
 
 
 class ParticipantOut(BaseModel):
@@ -34,6 +44,7 @@ class BillOut(BaseModel):
     num_people: int
     lightning_address: str
     description: str | None
+    participant_names: list[str] | None = None
     created_at: datetime
     participants: list[ParticipantOut]
 

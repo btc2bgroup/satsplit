@@ -4,6 +4,7 @@ export interface BillCreate {
   num_people: number;
   lightning_address: string;
   description?: string;
+  participant_names?: string[];
 }
 
 export interface ParticipantOut {
@@ -25,6 +26,7 @@ export interface BillOut {
   num_people: number;
   lightning_address: string;
   description: string | null;
+  participant_names: string[] | null;
   created_at: string;
   participants: ParticipantOut[];
 }

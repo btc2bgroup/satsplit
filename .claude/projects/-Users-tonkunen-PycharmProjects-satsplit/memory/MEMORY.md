@@ -1,0 +1,1 @@
+- [SatSplit overview](project_overview.md) — Bill-splitting app settling via Bitcoin Lightning; FastAPI + React + PostgreSQL

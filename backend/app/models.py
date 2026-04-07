@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, ForeignKey, Numeric, String, UniqueConstraint, func
+from sqlalchemy import JSON, BigInteger, ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -20,6 +20,7 @@ class Bill(Base):
     num_people: Mapped[int]
     lightning_address: Mapped[str] = mapped_column(String(320))
     description: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    participant_names: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     participants: Mapped[list["Participant"]] = relationship(back_populates="bill", lazy="selectin")

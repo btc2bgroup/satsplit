@@ -4,10 +4,11 @@ import { api, type ParticipantOut } from "../api";
 interface Props {
   shortCode: string;
   participants: ParticipantOut[];
+  predefinedNames?: string[] | null;
   onStatusChanged: () => void;
 }
 
-export default function ParticipantList({ shortCode, participants, onStatusChanged }: Props) {
+export default function ParticipantList({ shortCode, participants, predefinedNames, onStatusChanged }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
 
   async function toggle(p: ParticipantOut) {
@@ -21,7 +22,13 @@ export default function ParticipantList({ shortCode, participants, onStatusChang
     }
   }
 
-  if (participants.length === 0) {
+  const notJoinedNames = predefinedNames
+    ? predefinedNames.filter(
+        (n) => !participants.some((p) => p.name.toLowerCase() === n.toLowerCase()),
+      )
+    : [];
+
+  if (participants.length === 0 && notJoinedNames.length === 0) {
     return <p className="text-gray-500 text-sm">No participants yet.</p>;
   }
 
@@ -50,6 +57,16 @@ export default function ParticipantList({ shortCode, participants, onStatusChang
             >
               {p.status === "paid" ? "Mark Unpaid" : "Mark Paid"}
             </button>
+          </li>
+        ))}
+        {notJoinedNames.map((name) => (
+          <li key={name} className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400">{name}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                Not joined
+              </span>
+            </div>
           </li>
         ))}
       </ul>

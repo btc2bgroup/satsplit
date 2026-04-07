@@ -13,21 +13,47 @@ export default function BillForm({ onSubmit }: Props) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [predefineNames, setPredefineNames] = useState(false);
+  const [participantNames, setParticipantNames] = useState<string[]>([]);
   const [donateEnabled, setDonateEnabled] = useState(false);
   const [donationSats, setDonationSats] = useState(210);
+
+  const numPeopleInt = parseInt(numPeople) || 0;
+
+  function handleNumPeopleChange(value: string) {
+    setNumPeople(value);
+    const n = parseInt(value) || 0;
+    setParticipantNames((prev) => {
+      if (n > prev.length) return [...prev, ...Array(n - prev.length).fill("")];
+      return prev.slice(0, n);
+    });
+  }
+
+  function handleNameChange(index: number, value: string) {
+    setParticipantNames((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
+      const names = predefineNames ? participantNames.map((n) => n.trim()).filter(Boolean) : undefined;
+      if (predefineNames && names && names.length !== numPeopleInt) {
+        throw new Error("Please fill in all participant names");
+      }
       await onSubmit(
         {
           amount: parseFloat(amount),
           currency,
-          num_people: parseInt(numPeople),
+          num_people: numPeopleInt,
           lightning_address: lightningAddress,
           description: description || undefined,
+          participant_names: names,
         },
         donateEnabled ? donationSats : null,
       );
@@ -95,7 +121,7 @@ export default function BillForm({ onSubmit }: Props) {
           required
           placeholder="4"
           value={numPeople}
-          onChange={(e) => setNumPeople(e.target.value)}
+          onChange={(e) => handleNumPeopleChange(e.target.value)}
           className={inputClass}
         />
       </div>
@@ -123,6 +149,38 @@ export default function BillForm({ onSubmit }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           className={inputClass}
         />
+      </div>
+
+      <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={predefineNames}
+            onChange={(e) => {
+              setPredefineNames(e.target.checked);
+              if (e.target.checked && participantNames.length !== numPeopleInt) {
+                setParticipantNames(Array(numPeopleInt).fill(""));
+              }
+            }}
+            className="w-4 h-4 accent-[#f7931a]"
+          />
+          <span className="text-sm text-gray-700">Pre-define participant names</span>
+        </label>
+        {predefineNames && numPeopleInt >= 2 && (
+          <div className="space-y-2 pl-7">
+            {participantNames.map((name, i) => (
+              <input
+                key={i}
+                type="text"
+                maxLength={100}
+                placeholder={`Participant ${i + 1}`}
+                value={name}
+                onChange={(e) => handleNameChange(i, e.target.value)}
+                className={inputClass}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="border border-gray-200 rounded-lg p-4 space-y-3">

@@ -76,7 +76,7 @@ def test_join_bill(client, mock_lnurl, mock_exchange):
     assert data["bolt11_invoice"] is not None
 
 
-def test_join_bill_duplicate_name(client, mock_lnurl, mock_exchange):
+def test_join_bill_duplicate_name_unpaid_returns_existing(client, mock_lnurl, mock_exchange):
     create = client.post("/api/bills", json={
         "amount": 100.0,
         "currency": "USD",
@@ -85,9 +85,28 @@ def test_join_bill_duplicate_name(client, mock_lnurl, mock_exchange):
     })
     code = create.json()["short_code"]
 
-    client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    first = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    second = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    assert second.status_code == 201
+    assert second.json()["participant"]["id"] == first.json()["participant"]["id"]
+
+
+def test_join_bill_duplicate_name_paid_rejected(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 3,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    pid = join.json()["participant"]["id"]
+    client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "paid"})
+
     resp = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
     assert resp.status_code == 400
+    assert "already paid" in resp.json()["detail"]
 
 
 def test_join_bill_full(client, mock_lnurl, mock_exchange):
@@ -216,6 +235,100 @@ def test_update_participant_status_invalid(client, mock_lnurl, mock_exchange):
 
     resp = client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "invalid"})
     assert resp.status_code == 422
+
+
+def test_create_bill_with_participant_names(client, mock_lnurl, mock_exchange):
+    resp = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 3,
+        "lightning_address": "test@example.com",
+        "participant_names": ["Alice", "Bob", "Charlie"],
+    })
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["participant_names"] == ["Alice", "Bob", "Charlie"]
+
+
+def test_create_bill_without_participant_names(client, mock_lnurl, mock_exchange):
+    resp = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    assert resp.status_code == 201
+    assert resp.json()["participant_names"] is None
+
+
+def test_create_bill_participant_names_count_mismatch(client, mock_lnurl, mock_exchange):
+    resp = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 3,
+        "lightning_address": "test@example.com",
+        "participant_names": ["Alice", "Bob"],
+    })
+    assert resp.status_code == 400
+    assert "must match" in resp.json()["detail"]
+
+
+def test_create_bill_participant_names_duplicate(client, mock_lnurl, mock_exchange):
+    resp = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+        "participant_names": ["Alice", "alice"],
+    })
+    assert resp.status_code == 400
+    assert "unique" in resp.json()["detail"].lower()
+
+
+def test_join_bill_with_predefined_name(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+        "participant_names": ["Alice", "Bob"],
+    })
+    code = create.json()["short_code"]
+
+    resp = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    assert resp.status_code == 201
+    assert resp.json()["participant"]["name"] == "Alice"
+
+
+def test_join_bill_predefined_name_not_in_list(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+        "participant_names": ["Alice", "Bob"],
+    })
+    code = create.json()["short_code"]
+
+    resp = client.post(f"/api/bills/{code}/join", json={"name": "Charlie"})
+    assert resp.status_code == 400
+    assert "not in the participant list" in resp.json()["detail"]
+
+
+def test_join_bill_predefined_name_case_insensitive(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0,
+        "currency": "USD",
+        "num_people": 2,
+        "lightning_address": "test@example.com",
+        "participant_names": ["Alice", "Bob"],
+    })
+    code = create.json()["short_code"]
+
+    resp = client.post(f"/api/bills/{code}/join", json={"name": "alice"})
+    assert resp.status_code == 201
+    # Should use the original casing from the creator
+    assert resp.json()["participant"]["name"] == "Alice"
 
 
 def test_stats_empty(client):
