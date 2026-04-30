@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { api, type BillCreate } from "../api";
 import BillForm from "../components/BillForm";
+import SEO from "../components/SEO";
 
 export default function CreateBill() {
   const navigate = useNavigate();
@@ -21,8 +22,13 @@ export default function CreateBill() {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="SatSplit — Split Bills, Pay with Bitcoin Lightning"
+        description="Split any bill with friends and settle instantly over the Bitcoin Lightning Network. Free, non-custodial, no sign-up. Each person pays their share in sats."
+        path="/"
+      />
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">Split a Bill</h1>
+        <h1 className="text-2xl font-bold">Split a Bill with Bitcoin Lightning</h1>
         <p className="text-gray-500">
           Split any bill and settle instantly over the Bitcoin Lightning Network.
         </p>

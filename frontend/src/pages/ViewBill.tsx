@@ -52,6 +52,8 @@ export default function ViewBill() {
 
   return (
     <div className="space-y-6">
+      <title>Pay your share — SatSplit</title>
+      <meta name="robots" content="noindex,nofollow" />
       {showDonationBanner && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
           <span className="text-green-800 text-sm font-medium">Thanks for the donation!</span>

@@ -1,0 +1,46 @@
+# SatSplit
+
+> SatSplit is a free, open-source web app that lets people split bills with friends and settle instantly over the Bitcoin Lightning Network. No sign-ups, no apps, no custody — each participant pays their share directly to the bill creator's Lightning address.
+
+## What it is
+
+- **Product**: SatSplit (https://satsplit.app)
+- **Category**: Bill-splitting / payments / Bitcoin Lightning Network
+- **Pricing**: Free. No accounts, no fees collected by SatSplit.
+- **Source**: Open source — https://github.com/btc2bgroup/satsplit
+- **Operator**: btc2bgroup (https://btc2bgroup.com)
+
+## How it works
+
+1. The bill creator enters the total amount, currency, number of people splitting, and their Lightning address.
+2. SatSplit generates a unique short link to share with the group.
+3. Each participant opens the link, enters their name, and is shown a Lightning invoice for their share.
+4. Payments go directly to the bill creator's Lightning address. SatSplit never touches the funds — there is no custody and no middleman.
+
+## Key properties
+
+- **Non-custodial**: SatSplit never holds funds. Payments settle Lightning-address to Lightning-address.
+- **No sign-up**: No account, email, or KYC required for creators or payers.
+- **Fiat-denominated splits**: Bills can be entered in fiat currencies and converted to sats at payment time using current BTC rates.
+- **Instant settlement**: Lightning Network payments settle in seconds with minimal fees.
+- **Privacy**: Self-hosted analytics; no third-party trackers; bill links are unguessable short codes.
+
+## Frequently asked
+
+- **Is SatSplit free?** Yes. There is no fee charged by SatSplit. Standard Lightning routing fees apply on the payer's wallet.
+- **Do I need an account?** No. Neither the bill creator nor the payers need to sign up.
+- **What is a Lightning address?** A human-readable identifier (like an email) that resolves to a Lightning payment endpoint, e.g. `you@walletofsatoshi.com`.
+- **Does SatSplit hold the money?** No. Payments go directly to the bill creator's Lightning address. SatSplit is non-custodial.
+- **What wallets work?** Any Lightning wallet that can pay a BOLT11 invoice — Wallet of Satoshi, Phoenix, Breez, Zeus, Alby, Cash App, Strike, etc.
+- **Can I split in dollars / euros?** Yes. Bills can be denominated in fiat and converted to sats at the time of payment.
+
+## Pages
+
+- [Home / Create a bill](https://satsplit.app/): Create a new shared bill.
+- [About](https://satsplit.app/about): How SatSplit works and why Lightning.
+- [Stats](https://satsplit.app/stats): Public usage metrics.
+
+## Optional
+
+- [GitHub repository](https://github.com/btc2bgroup/satsplit)
+- [btc2bgroup](https://btc2bgroup.com)

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type StatsOut, type DateCount } from "../api";
+import SEO from "../components/SEO";
 
 function Bar({ value, max, label }: { value: number; max: number; label: string }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
@@ -57,6 +58,11 @@ export default function Stats() {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="SatSplit Stats — Public Usage Metrics"
+        description="Public usage stats for SatSplit: bills created, sats settled, and Lightning payments processed."
+        path="/stats"
+      />
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold">Stats</h1>
       </div>

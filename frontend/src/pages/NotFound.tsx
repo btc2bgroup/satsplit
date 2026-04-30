@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 export default function NotFound() {
   return (
     <div className="text-center space-y-4 py-12">
+      <title>Page not found — SatSplit</title>
+      <meta name="robots" content="noindex" />
       <h1 className="text-4xl font-bold text-gray-400">404</h1>
       <p className="text-gray-500">Page not found</p>
       <Link

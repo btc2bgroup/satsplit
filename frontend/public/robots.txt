@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+Disallow: /bill/
+
+# AI / answer-engine crawlers (GEO)
+User-agent: GPTBot
+Allow: /
+Disallow: /bill/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /bill/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /bill/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /bill/
+
+User-agent: CCBot
+Allow: /
+Disallow: /bill/
+
+Sitemap: https://satsplit.app/sitemap.xml
