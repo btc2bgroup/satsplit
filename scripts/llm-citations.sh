@@ -36,6 +36,10 @@ ALL_RE="$RETRIEVAL|$TRAINING"
 if [[ -n "$FILE" ]]; then
 	SOURCE_CMD=(cat "$FILE")
 else
+	# docker compose --since accepts Go durations (h/m/s) or timestamps — translate Nd → (N*24)h.
+	if [[ "$SINCE" =~ ^([0-9]+)d$ ]]; then
+		SINCE="$(( ${BASH_REMATCH[1]} * 24 ))h"
+	fi
 	SOURCE_CMD=(docker compose logs --since "$SINCE" --no-color frontend)
 fi
 
