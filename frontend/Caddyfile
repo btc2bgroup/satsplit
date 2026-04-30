@@ -1,4 +1,8 @@
 :3000 {
+	log {
+		output stdout
+		format json
+	}
 	handle /api/* {
 		reverse_proxy backend:8000
 	}
