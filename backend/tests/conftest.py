@@ -57,7 +57,28 @@ MOCK_LNURL_DATA = {
 MOCK_INVOICE_DATA = {
     "pr": "lnbc1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq9qrsgq357wnc5r2ueh7ck6q93dj32dlqnls087fxdwk8qakdyafkq3yap9us6v52vjjsrvywa6rt52cm9r9zqt8r2t7mlcwspyetp5h2tztugp9lfyql",
     "routes": [],
+    "verify": "https://example.com/verify/894e7f7e",
 }
+
+
+@pytest.fixture
+def mock_verify_settled():
+    with patch(
+        "app.services.lnurl.verify_payment",
+        new_callable=AsyncMock,
+        return_value={"settled": True, "preimage": "aa" * 32},
+    ) as m:
+        yield m
+
+
+@pytest.fixture
+def mock_verify_unsettled():
+    with patch(
+        "app.services.lnurl.verify_payment",
+        new_callable=AsyncMock,
+        return_value={"settled": False, "preimage": None},
+    ) as m:
+        yield m
 
 
 @pytest.fixture

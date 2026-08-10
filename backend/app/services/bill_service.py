@@ -1,12 +1,30 @@
+import logging
 import math
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import shortuuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models import Bill, Participant
-from app.services import exchange, lnurl
+from app.services import exchange, lnurl, url_guard
+
+logger = logging.getLogger(__name__)
+
+
+class VerifyUnsupported(Exception):
+    """The participant's invoice has no usable LUD-21 verify URL."""
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _as_utc(value: datetime) -> datetime:
+    """SQLite hands back naive datetimes; treat those as UTC so comparisons work."""
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
 async def create_bill(
@@ -104,6 +122,10 @@ async def join_bill(session: AsyncSession, bill: Bill, name: str) -> Participant
     # Extract payment hash from bolt11
     payment_hash = _extract_payment_hash(invoice_data["pr"])
 
+    verify_url = _safe_verify_url(
+        invoice_data.get("verify"), lnurl_data["callback"], bill.lightning_address
+    )
+
     participant = Participant(
         id=uuid.uuid4(),
         bill_id=bill.id,
@@ -112,6 +134,7 @@ async def join_bill(session: AsyncSession, bill: Bill, name: str) -> Participant
         share_amount_fiat=share_fiat,
         bolt11_invoice=invoice_data["pr"],
         payment_hash=payment_hash,
+        verify_url=verify_url,
         status="invoice_created",
     )
     session.add(participant)
@@ -132,6 +155,72 @@ async def update_participant_status(
     participant.status = new_status
     await session.commit()
     await session.refresh(participant)
+    return participant
+
+
+def _safe_verify_url(verify_url: str | None, callback: str, lightning_address: str) -> str | None:
+    """Keep a LUD-21 verify URL only if it passes the SSRF guard.
+
+    A rejected URL is not an error for the payer — the participant simply falls back to
+    the manual paid/unpaid toggle.
+    """
+    if not verify_url or not settings.lnurl_verify_enabled:
+        return None
+    try:
+        url_guard.check_url_shape(verify_url, callback, lightning_address)
+    except url_guard.UnsafeUrlError as e:
+        logger.warning("Discarding LUD-21 verify URL for %s: %s", lightning_address, e)
+        return None
+    return verify_url
+
+
+async def get_participant(
+    session: AsyncSession, bill: Bill, participant_id: uuid.UUID
+) -> Participant | None:
+    result = await session.execute(
+        select(Participant).where(Participant.id == participant_id, Participant.bill_id == bill.id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def verify_participant_payment(
+    session: AsyncSession, bill: Bill, participant_id: uuid.UUID
+) -> Participant | None:
+    """Check settlement via LUD-21 and mark the participant paid if it has settled.
+
+    Returns None when the participant does not exist, and raises VerifyUnsupported when
+    the invoice carries no usable verify URL.
+    """
+    participant = await get_participant(session, bill, participant_id)
+    if not participant:
+        return None
+
+    # Already paid: nothing to learn, and no reason to contact the LN service again.
+    if participant.status == "paid":
+        return participant
+
+    if not participant.verify_url or not settings.lnurl_verify_enabled:
+        raise VerifyUnsupported("This lightning address does not support payment verification")
+
+    now = _utcnow()
+    if participant.last_verify_check_at is not None:
+        elapsed = now - _as_utc(participant.last_verify_check_at)
+        if elapsed < timedelta(seconds=settings.lnurl_verify_min_interval):
+            # Throttled. Return current state rather than erroring — clients poll this.
+            return participant
+
+    participant.last_verify_check_at = now
+    await session.commit()
+
+    result = await lnurl.verify_payment(participant.verify_url, participant.bolt11_invoice)
+
+    if result["settled"]:
+        participant.status = "paid"
+        participant.preimage = result["preimage"]
+        participant.verified_at = _utcnow()
+        await session.commit()
+        await session.refresh(participant)
+
     return participant
 
 

@@ -86,6 +86,9 @@ export default function ViewBill() {
           fiatAmount={joinData.participant.share_amount_fiat}
           currency={bill.currency}
           msats={joinData.participant.share_amount_msats}
+          shortCode={shortCode}
+          participantId={joinData.participant.id}
+          verifiable={joinData.participant.verifiable}
         />
       ) : (
         !isCreator && (

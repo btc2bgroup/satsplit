@@ -66,3 +66,27 @@ async def update_participant_status(
     if not participant:
         raise HTTPException(404, detail="Participant not found")
     return participant
+
+
+@router.post("/bills/{short_code}/participants/{participant_id}/verify", response_model=ParticipantOut)
+@limiter.limit(settings.rate_limit)
+async def verify_participant_payment(
+    request: Request,
+    short_code: str,
+    participant_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+):
+    """Check settlement of a participant's invoice via LUD-21."""
+    bill = await bill_service.get_bill_by_code(session, short_code)
+    if not bill:
+        raise HTTPException(404, detail="Bill not found")
+    try:
+        participant = await bill_service.verify_participant_payment(session, bill, participant_id)
+    except bill_service.VerifyUnsupported as e:
+        raise HTTPException(409, detail=str(e))
+    except LnurlError as e:
+        logger.warning("Verify participant %s failed: %s", participant_id, e)
+        raise HTTPException(422, detail=str(e))
+    if not participant:
+        raise HTTPException(404, detail="Participant not found")
+    return participant

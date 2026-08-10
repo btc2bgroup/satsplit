@@ -15,6 +15,11 @@ export interface ParticipantOut {
   status: string;
   bolt11_invoice: string | null;
   payment_hash: string | null;
+  /** Whether this invoice can be checked via LUD-21. */
+  verifiable: boolean;
+  /** Settlement confirmed by the LN service, as opposed to marked paid by hand. */
+  verified: boolean;
+  preimage: string | null;
   created_at: string;
 }
 
@@ -64,6 +69,16 @@ export interface StatsOut {
 
 const BASE = "/api";
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, {
     headers: { "Content-Type": "application/json" },
@@ -85,7 +100,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         message = `Unexpected error (${res.status})`;
       }
     }
-    throw new Error(message);
+    throw new ApiError(message, res.status);
   }
   return res.json();
 }
@@ -108,6 +123,12 @@ export const api = {
     request<ParticipantOut>(`/bills/${code}/participants/${participantId}/status`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
+    }),
+
+  /** Ask the backend to check settlement via LUD-21. */
+  verifyParticipant: (code: string, participantId: string) =>
+    request<ParticipantOut>(`/bills/${code}/participants/${participantId}/verify`, {
+      method: "POST",
     }),
 
   createDonation: (billShortCode: string, amountSats: number) =>

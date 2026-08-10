@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     exchange_rate_cache_ttl: int = 60
     coingecko_base_url: str = "https://api.coingecko.com/api/v3"
     rate_limit: str = "60/minute"
+    lnurl_verify_enabled: bool = True
+    lnurl_verify_timeout: int = 10
+    lnurl_verify_min_interval: int = 3
     btcpay_url: str = ""
     btcpay_api_key: str = ""
     btcpay_store_id: str = ""

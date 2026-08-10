@@ -1,0 +1,82 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - link "SatSplit" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "SatSplit" [ref=e8]
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - heading "Split a Bill with Bitcoin Lightning" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Split any bill and settle instantly over the Bitcoin Lightning Network.
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - generic [ref=e16]:
+              - generic [ref=e17]: Amount
+              - spinbutton "Amount" [ref=e18]: "80"
+            - generic [ref=e19]:
+              - generic [ref=e20]: Currency
+              - combobox "Currency" [ref=e21]:
+                - option "USD" [selected]
+                - option "EUR"
+                - option "GBP"
+                - option "JPY"
+                - option "CNY"
+                - option "AUD"
+                - option "CAD"
+                - option "CHF"
+                - option "HKD"
+                - option "SGD"
+                - option "SEK"
+                - option "NOK"
+                - option "KRW"
+                - option "INR"
+                - option "BRL"
+                - option "SATS"
+          - generic [ref=e22]:
+            - generic [ref=e23]: Number of people
+            - spinbutton "Number of people" [ref=e24]: "2"
+          - generic [ref=e25]:
+            - generic [ref=e26]: Your Lightning Address
+            - textbox "Your Lightning Address" [ref=e27]:
+              - /placeholder: you@getalby.com
+              - text: test@getalby.com
+          - generic [ref=e28]:
+            - generic [ref=e29]: Description (optional)
+            - textbox "Description (optional)" [ref=e30]:
+              - /placeholder: Dinner at Mario's
+          - generic [ref=e32] [cursor=pointer]:
+            - checkbox "Pre-define participant names" [ref=e33]
+            - generic [ref=e34]: Pre-define participant names
+          - generic [ref=e36] [cursor=pointer]:
+            - checkbox "I want to support this project" [ref=e37]
+            - generic [ref=e38]: I want to support this project
+          - paragraph [ref=e39]: Unexpected error (500)
+          - button "Split the Bill" [ref=e40]
+        - generic [ref=e41]:
+          - heading "How it works" [level=2] [ref=e42]
+          - list [ref=e43]:
+            - listitem [ref=e44]:
+              - generic [ref=e45]: "1."
+              - text: Enter the total amount, currency, and number of people.
+            - listitem [ref=e46]:
+              - generic [ref=e47]: "2."
+              - text: Share the link with everyone splitting the bill.
+            - listitem [ref=e48]:
+              - generic [ref=e49]: "3."
+              - text: Each person pays their share in sats via a Lightning invoice.
+  - contentinfo [ref=e50]:
+    - paragraph [ref=e51]: Split bills. Pay with Lightning.
+    - generic [ref=e52]:
+      - link "About" [ref=e53] [cursor=pointer]:
+        - /url: /about
+      - generic [ref=e54]: "|"
+      - link "Stats" [ref=e55] [cursor=pointer]:
+        - /url: /stats
+      - generic [ref=e56]: "|"
+      - link "GitHub" [ref=e57] [cursor=pointer]:
+        - /url: https://github.com/btc2bgroup/satsplit
+        - img [ref=e58]
+```

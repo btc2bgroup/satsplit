@@ -31,6 +31,9 @@ class ParticipantOut(BaseModel):
     status: str
     bolt11_invoice: str | None = None
     payment_hash: str | None = None
+    verifiable: bool = False
+    verified: bool = False
+    preimage: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
