@@ -8,7 +8,7 @@ We take the security of SatSplit seriously. If you discover a security vulnerabi
 
 Instead, report it privately via email:
 
-📧 **hello@btc2bgroup.com**
+📧 **ton@btc2bgroup.com**
 
 Please include as much of the following as possible:
 
