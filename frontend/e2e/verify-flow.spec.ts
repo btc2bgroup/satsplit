@@ -138,6 +138,19 @@ test.describe("LUD-21 verification — bill owner", () => {
 });
 
 test.describe("LUD-21 verification — payer", () => {
+  test("the payer sees the invoice and a waiting hint while unpaid", async ({ page }) => {
+    await mockApi(page, { settles: false });
+
+    await page.goto(`/bill/${CODE}`);
+    await page.fill('[placeholder="Enter your name"]', "Alice");
+    await page.click("text=Join & Get Invoice");
+
+    await expect(page.locator("text=Pay Your Share")).toBeVisible();
+    await expect(
+      page.locator("text=Waiting for payment — this updates automatically."),
+    ).toBeVisible();
+  });
+
   test("the payer sees a confirmation once their payment settles", async ({ page }) => {
     await mockApi(page, { settles: true });
 
@@ -145,7 +158,8 @@ test.describe("LUD-21 verification — payer", () => {
     await page.fill('[placeholder="Enter your name"]', "Alice");
     await page.click("text=Join & Get Invoice");
 
-    await expect(page.locator("text=Pay Your Share")).toBeVisible();
+    // No assertion on the intermediate invoice view: the first verify poll fires on
+    // mount, so a fast response settles it before the QR is ever observable.
     await expect(page.locator("text=Payment received")).toBeVisible({ timeout: 15000 });
     await expect(page.locator("text=Copy Invoice")).toHaveCount(0);
   });
