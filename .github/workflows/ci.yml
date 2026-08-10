@@ -34,7 +34,7 @@ jobs:
         run: pytest -q
 
   migrations:
-    name: Migrations
+    name: Migrations & database integration
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -74,6 +74,17 @@ jobs:
         run: |
           alembic downgrade -1
           alembic upgrade head
+
+      # SQLite accepts a timezone-aware datetime into a naive column; Postgres rejects
+      # it. These run against a separate database so they cannot disturb the schema the
+      # migration steps just built.
+      - name: Run database integration tests
+        env:
+          PGPASSWORD: postgres
+          GD_TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/integration
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE integration;"
+          pytest -q tests/test_postgres_integration.py
 
   lint:
     name: Lint

@@ -1,7 +1,16 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, BigInteger, ForeignKey, Numeric, String, UniqueConstraint, func
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -21,7 +30,7 @@ class Bill(Base):
     lightning_address: Mapped[str] = mapped_column(String(320))
     description: Mapped[str | None] = mapped_column(String(256), nullable=True)
     participant_names: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     participants: Mapped[list["Participant"]] = relationship(back_populates="bill", lazy="selectin")
 
@@ -42,9 +51,9 @@ class Participant(Base):
     # never serialized to clients.
     verify_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     preimage: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    last_verify_check_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_verify_check_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     bill: Mapped["Bill"] = relationship(back_populates="participants")
 
@@ -67,4 +76,4 @@ class Donation(Base):
     amount_sats: Mapped[int]
     btcpay_invoice_id: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(16), default="pending")
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
