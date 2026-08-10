@@ -12,6 +12,7 @@ const fakeBill = {
   num_people: 2,
   lightning_address: "test@ln.com",
   description: null,
+  participant_names: null,
   created_at: "2026-01-01T00:00:00Z",
   participants: [],
 };

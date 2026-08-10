@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { api } from "../api";
+import { ApiError, api } from "../api";
 
 describe("api client", () => {
   beforeEach(() => {
@@ -106,5 +106,41 @@ describe("api client", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: "Alice" }),
     });
+  });
+});
+
+describe("api client — LUD-21 verification", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("verifyParticipant POSTs to the verify endpoint", async () => {
+    const participant = { id: "p1", status: "paid", verified: true };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(participant),
+    } as Response);
+
+    const result = await api.verifyParticipant("abc", "p1");
+
+    expect(fetch).toHaveBeenCalledWith("/api/bills/abc/participants/p1/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(result).toEqual(participant);
+  });
+
+  it("throws an ApiError carrying the status code", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: () => Promise.resolve({ detail: "not supported" }),
+    } as Response);
+
+    await expect(api.verifyParticipant("abc", "p1")).rejects.toMatchObject({
+      message: "not supported",
+      status: 409,
+    });
+    await expect(api.verifyParticipant("abc", "p1")).rejects.toBeInstanceOf(ApiError);
   });
 });

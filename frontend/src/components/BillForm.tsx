@@ -57,8 +57,8 @@ export default function BillForm({ onSubmit }: Props) {
         },
         donateEnabled ? donationSats : null,
       );
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
+    } catch (err) {
+      setError((err instanceof Error && err.message) || "Something went wrong");
     } finally {
       setLoading(false);
     }

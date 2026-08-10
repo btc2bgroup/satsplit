@@ -7,6 +7,8 @@ from slowapi.wrappers import Limit
 
 from app.limiter import limiter
 
+from .conftest import MOCK_INVOICE_DATA, MOCK_LNURL_DATA
+
 
 def test_rate_limit(client):
     key = "app.routers.bills.get_bill"
@@ -366,3 +368,179 @@ def test_stats_with_data(client, mock_lnurl, mock_exchange):
     assert currencies["EUR"]["total"] == 50.0
     assert len(data["bills_over_time"]) >= 1
     assert len(data["participants_over_time"]) >= 1
+
+
+# --- LUD-21 payment verification -------------------------------------------------
+
+
+def _bill_with_participant(client):
+    create = client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Alice"})
+    return code, join.json()["participant"]["id"]
+
+
+def test_join_exposes_verifiable_flag(client, mock_lnurl, mock_exchange):
+    create = client.post("/api/bills", json={
+        "amount": 100.0, "currency": "USD", "num_people": 2,
+        "lightning_address": "test@example.com",
+    })
+    code = create.json()["short_code"]
+    join = client.post(f"/api/bills/{code}/join", json={"name": "Bob"})
+    participant = join.json()["participant"]
+    assert participant["verifiable"] is True
+    assert participant["verified"] is False
+    # The verify URL itself is internal and must never reach the client.
+    assert "verify_url" not in participant
+
+
+def test_verify_marks_participant_paid(client, mock_lnurl, mock_exchange, mock_verify_settled):
+    code, pid = _bill_with_participant(client)
+
+    resp = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "paid"
+    assert data["verified"] is True
+    assert data["preimage"] == "aa" * 32
+    mock_verify_settled.assert_awaited_once()
+
+
+def test_verify_unsettled_leaves_status_alone(client, mock_lnurl, mock_exchange, mock_verify_unsettled):
+    code, pid = _bill_with_participant(client)
+
+    resp = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "invoice_created"
+    assert data["verified"] is False
+    assert data["preimage"] is None
+
+
+def test_verify_is_idempotent_and_skips_outbound_call_once_paid(
+    client, mock_lnurl, mock_exchange, mock_verify_settled
+):
+    code, pid = _bill_with_participant(client)
+
+    first = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    second = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    assert first.status_code == second.status_code == 200
+    assert second.json()["status"] == "paid"
+    # Second call short-circuits: no second request to the LN service.
+    assert mock_verify_settled.await_count == 1
+
+
+def test_verify_throttled_returns_current_state_without_calling_service(
+    client, mock_lnurl, mock_exchange, mock_verify_unsettled
+):
+    code, pid = _bill_with_participant(client)
+
+    client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    resp = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "invoice_created"
+    assert mock_verify_unsettled.await_count == 1
+
+
+def test_verify_respects_min_interval_setting(client, mock_lnurl, mock_exchange, mock_verify_unsettled):
+    from app.config import settings
+
+    original = settings.lnurl_verify_min_interval
+    settings.lnurl_verify_min_interval = 0
+    try:
+        code, pid = _bill_with_participant(client)
+        client.post(f"/api/bills/{code}/participants/{pid}/verify")
+        client.post(f"/api/bills/{code}/participants/{pid}/verify")
+        assert mock_verify_unsettled.await_count == 2
+    finally:
+        settings.lnurl_verify_min_interval = original
+
+
+def test_verify_unsupported_when_no_verify_url(client, mock_exchange):
+    no_verify_invoice = dict(MOCK_INVOICE_DATA)
+    no_verify_invoice["verify"] = None
+    with (
+        patch("app.services.lnurl.resolve_lightning_address", new_callable=AsyncMock,
+              return_value=MOCK_LNURL_DATA),
+        patch("app.services.lnurl.fetch_invoice", new_callable=AsyncMock,
+              return_value=no_verify_invoice),
+    ):
+        code, pid = _bill_with_participant(client)
+
+    join_resp = client.get(f"/api/bills/{code}/participants/{pid}")
+    assert join_resp.json()["verifiable"] is False
+
+    resp = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    assert resp.status_code == 409
+    assert "does not support" in resp.json()["detail"]
+
+
+def test_offsite_verify_url_is_discarded(client, mock_exchange):
+    """An off-domain verify URL is dropped rather than stored — SSRF guard."""
+    evil_invoice = dict(MOCK_INVOICE_DATA)
+    evil_invoice["verify"] = "https://169.254.169.254/latest/meta-data"
+    with (
+        patch("app.services.lnurl.resolve_lightning_address", new_callable=AsyncMock,
+              return_value=MOCK_LNURL_DATA),
+        patch("app.services.lnurl.fetch_invoice", new_callable=AsyncMock,
+              return_value=evil_invoice),
+    ):
+        code, pid = _bill_with_participant(client)
+
+    assert client.get(f"/api/bills/{code}/participants/{pid}").json()["verifiable"] is False
+    assert client.post(f"/api/bills/{code}/participants/{pid}/verify").status_code == 409
+
+
+def test_verify_lnurl_error_returns_422(client, mock_lnurl, mock_exchange):
+    from app.services.lnurl import LnurlError
+
+    code, pid = _bill_with_participant(client)
+    with patch("app.services.lnurl.verify_payment", new_callable=AsyncMock,
+               side_effect=LnurlError("Not found")):
+        resp = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+    assert resp.status_code == 422
+    assert "Not found" in resp.json()["detail"]
+
+
+def test_verify_participant_not_found(client, mock_lnurl, mock_exchange):
+    code, _ = _bill_with_participant(client)
+    resp = client.post(
+        f"/api/bills/{code}/participants/00000000-0000-0000-0000-000000000000/verify"
+    )
+    assert resp.status_code == 404
+
+
+def test_verify_bill_not_found(client):
+    resp = client.post(
+        "/api/bills/nonexist/participants/00000000-0000-0000-0000-000000000000/verify"
+    )
+    assert resp.status_code == 404
+
+
+def test_verify_disabled_by_setting(client, mock_exchange):
+    from app.config import settings
+
+    original = settings.lnurl_verify_enabled
+    settings.lnurl_verify_enabled = False
+    try:
+        with (
+            patch("app.services.lnurl.resolve_lightning_address", new_callable=AsyncMock,
+                  return_value=MOCK_LNURL_DATA),
+            patch("app.services.lnurl.fetch_invoice", new_callable=AsyncMock,
+                  return_value=MOCK_INVOICE_DATA),
+        ):
+            code, pid = _bill_with_participant(client)
+        resp = client.post(f"/api/bills/{code}/participants/{pid}/verify")
+        assert resp.status_code == 409
+    finally:
+        settings.lnurl_verify_enabled = original
+
+
+def test_manually_marked_paid_is_not_flagged_verified(client, mock_lnurl, mock_exchange):
+    code, pid = _bill_with_participant(client)
+    resp = client.patch(f"/api/bills/{code}/participants/{pid}/status", json={"status": "paid"})
+    assert resp.json()["status"] == "paid"
+    assert resp.json()["verified"] is False

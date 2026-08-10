@@ -8,7 +8,7 @@ We take the security of SatSplit seriously. If you discover a security vulnerabi
 
 Instead, report it privately via email:
 
-📧 **hello@btc2bgroup.com**
+📧 **ton@btc2bgroup.com**
 
 Please include as much of the following as possible:
 
@@ -24,6 +24,21 @@ Please include as much of the following as possible:
 - **Disclosure:** We ask that you give us a reasonable amount of time to address the issue before any public disclosure. We are happy to coordinate disclosure timing with you.
 - **Credit:** With your permission, we will credit you for the discovery once the issue is resolved.
 
+
+## Outbound requests to third-party URLs
+
+SatSplit makes server-side requests to URLs supplied by third parties: the LNURL-pay
+callback for a bill's lightning address, and the [LUD-21](https://github.com/lnurl/luds/blob/luds/21.md)
+`verify` URL returned by that callback. Because anyone who can create a bill controls those
+values, a verify URL is only stored and fetched when it:
+
+- uses HTTPS,
+- is on the same domain as the LNURL callback or the lightning address, and
+- resolves to a publicly routable address (loopback, private, link-local, and reserved
+  ranges are rejected, and the check is repeated immediately before each fetch).
+
+Redirects are not followed, and response bodies are size-capped. A URL that fails any check is
+discarded, and the participant falls back to manual paid/unpaid marking.
 
 ## Safe Harbor
 

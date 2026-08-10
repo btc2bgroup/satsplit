@@ -38,9 +38,25 @@ class Participant(Base):
     bolt11_invoice: Mapped[str | None] = mapped_column(nullable=True)
     payment_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="pending")
+    # LUD-21 verify URL, captured from the LNURL-pay callback response. Internal only —
+    # never serialized to clients.
+    verify_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    preimage: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    last_verify_check_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     bill: Mapped["Bill"] = relationship(back_populates="participants")
+
+    @property
+    def verifiable(self) -> bool:
+        """Whether this invoice can be checked via LUD-21."""
+        return self.verify_url is not None
+
+    @property
+    def verified(self) -> bool:
+        """Whether settlement was confirmed by the LN service (vs. marked paid by hand)."""
+        return self.verified_at is not None
 
 
 class Donation(Base):
