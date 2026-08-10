@@ -14,18 +14,22 @@ export default function ViewBill() {
   const [joinData, setJoinData] = useState<JoinResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showDonationBanner, setShowDonationBanner] = useState(false);
+  // Read on first render rather than in an effect, so the banner does not need a
+  // second render pass to appear.
+  const [showDonationBanner, setShowDonationBanner] = useState(
+    () => searchParams.get("donated") === "1",
+  );
   const isCreator = (() => {
     const stored = JSON.parse(localStorage.getItem("created_bills") || "[]");
     return stored.includes(shortCode);
   })();
 
+  // Strip the marker from the URL so a refresh does not re-show the banner.
   useEffect(() => {
-    if (searchParams.get("donated") === "1") {
-      setShowDonationBanner(true);
-      searchParams.delete("donated");
-      setSearchParams(searchParams, { replace: true });
-    }
+    if (searchParams.get("donated") !== "1") return;
+    const next = new URLSearchParams(searchParams);
+    next.delete("donated");
+    setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {

@@ -16,8 +16,8 @@ export default function JoinForm({ onJoin, availableNames }: Props) {
     setLoading(true);
     try {
       await onJoin(name.trim());
-    } catch (err: any) {
-      setError(err.message || "Failed to join");
+    } catch (err) {
+      setError((err instanceof Error && err.message) || "Failed to join");
     } finally {
       setLoading(false);
     }
