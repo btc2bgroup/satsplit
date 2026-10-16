@@ -19,8 +19,9 @@ async def create_invoice(amount_sats: int, redirect_url: str) -> dict:
         "currency": "SATS",
         "checkout": {
             "redirectURL": redirect_url,
-            "redirectAutomatically": True,
+            "redirectAutomatically": True
         },
+        "metadata": {"lcAttributionKey": "custom:satsplit"},
     }
 
     async with httpx.AsyncClient() as client:
